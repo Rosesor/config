@@ -1,0 +1,260 @@
+https://yuan.ga/v2ray-complete-tutorial/
+
+centos要关闭防火墙或开放对应端口，ubuntu不用
+centos7
+firewall-cmd --state
+#停止firewall
+PORT:25927
+UUID:5198ff6f-3bf1-4c37-b722-cb7168f42cca
+
+systemctl stop firewalld.service
+#禁止firewall开机启动
+systemctl disable firewalld.service
+                         
+修改时间和时区
+rm -rf /etc/localtime
+ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+
+官方脚本   （https://www.v2ray.com/）
+bash <(curl -L -s https://install.direct/go.sh)
+		 （ 开放指定端口 firewall-cmd --zone=public --add-port=1234/tcp --permanent
+                   	    查询端口是否开放 firewall-cmd --query-port=1234/tcp
+		    重启防火墙 firewall-cmd --reload
+		     查询已开放的端口firewall-cmd --list-port）
+# 上列命令会自动安装 V2Ray，然后执行下面命令运行
+systemctl start v2ray
+BBR一键脚本
+wget -N --no-check-certificate "https://raw.githubusercontent.com/chiakge/Linux-NetSpeed/master/tcp.sh" && chmod +x tcp.sh && ./tcp.sh
+重启后再运行一次脚本启动BBR魔改
+1.编辑 vim /etc/v2ray/config.json 文件来配置你需要的代理方式；
+2.运行 systemctl start v2ray 来启动 V2Ray 进程；
+3.之后可以使用 systemctl start|restart|stop|status v2ray 控制 V2Ray 的运行。
+4.systemctl status v2ray  查看v2ray运行状态
+5.sudo systemctl enable v2ray # 用于程序开机启动并且崩溃时自动重启程序
+或者
+service v2ray restart
+service v2ray start
+service v2ray status
+
+配置v2ray
+vim /etc/v2ray/config.json
+服务器配置1
+{
+  "inbounds": [{
+    "port":666 ,
+    "protocol": "vmess",
+    "settings": {
+      "clients": [
+        {
+          "id": "1c27e285-174e-4537-8f43-9b7d5034f7a1",
+          "level": 1,
+          "alterId": 64
+        }
+    },
+    "streamSettings":{
+	"network":"ws"
+	}
+  }],
+  "outbounds": [{
+    "protocol": "freedom",
+    "settings": {}
+  },{
+    "protocol": "blackhole",
+    "settings": {},
+    "tag": "blocked"
+  }],
+  "routing": {
+    "rules": [
+      {
+        "type": "field",
+        "ip": ["geoip:private"],
+        "outboundTag": "blocked"
+      }
+    ]
+  }
+}
+
+配置2
+{
+  "inbounds": [
+    {
+      "port": 443, // Vmess 协议服务器监听端口
+      "protocol": "vmess",
+      "settings": {
+        "clients": [
+          {
+            "id": "b831381d-6324-4d53-ad4f-8cda48b30811" // id(UUID) 需要修改
+          }
+        ]
+      }
+    },
+    {
+      "port": 444, // SS 协议服务端监听端口
+      "protocol": "shadowsocks",
+      "settings": {
+        "method": "aes-128-gcm", // 加密方式
+        "password": "yuan.ga" //密码
+      }
+    }
+  ],
+  "outbounds": [
+    {
+      "protocol": "freedom",
+      "settings": {}
+    }
+  ]
+}
+
+配置3   https://www.xpath.org/blog/001531048571577582cfa0ea2804e5f9cb224de052a4975000
+{
+  "log" : {
+    "access": "/var/log/v2ray/access.log",
+    "error": "/var/log/v2ray/error.log",
+    "loglevel": "warning"
+  },
+  "inbound": {
+    "port": 10000, //(此端口与nginx配置相关)
+    "listen": "127.0.0.1",
+    "protocol": "vmess",
+    "settings": {
+      "clients": [
+        {
+          "id": "461aad1f-687c-4188-9abc-80073a618ca3", //你的UUID， 此ID需与客户端保持一致
+          "level": 1,
+          "alterId": 64 //此ID也需与客户端保持一致
+        }
+      ]
+    },
+   "streamSettings":{
+      "network": "ws",
+      "wsSettings": {
+           "path": "/ray" //与nginx配置相关
+      }
+   }
+  },
+  "outbound": {
+    "protocol": "freedom",
+    "settings": {}
+  },
+  "outboundDetour": [
+    {
+      "protocol": "blackhole",
+      "settings": {},
+      "tag": "blocked"
+    }
+  ],
+  "routing": {
+    "strategy": "rules",
+    "settings": {
+      "rules": [
+        {
+          "type": "field",
+          "ip": [
+            "0.0.0.0/8",
+            "10.0.0.0/8",
+            "100.64.0.0/10",
+            "127.0.0.0/8",
+            "169.254.0.0/16",
+            "172.16.0.0/12",
+            "192.0.0.0/24",
+            "192.0.2.0/24",
+            "192.168.0.0/16",
+            "198.18.0.0/15",
+            "198.51.100.0/24",
+            "203.0.113.0/24",
+            "::1/128",
+            "fc00::/7",
+            "fe80::/10"
+          ],
+          "outboundTag": "blocked"
+        }
+      ]
+    }
+  }
+}
+lnmpa一键脚本
+wget http://soft.vpser.net/lnmp/lnmp1.6.tar.gz -cO lnmp1.6.tar.gz && tar zxf lnmp1.6.tar.gz && cd lnmp1.6 && ./install.sh lnmpa
+
+PORT:2593 3666
+UUID:c2d2085c-4df6-40b3-9329-bbeec5f5d08b
+
+
+bash <(curl -s -L https://git.io/v2ray.sh)
+
+
+
+
+安装SSL证书
+安装EPEL：
+
+yum -y install epel-release
+Shell 复制
+安装certbot用于签发SSL证书：
+
+yum -y install certbot
+Shell 复制
+申请SSL证书：
+
+certbot certonly --standalone -d example.com
+Shell 复制
+这里的example.com替换成你的域名
+如果申请成功，证书和私钥路径如下：
+
+/etc/letsencrypt/live/example.com/fullchain.pem
+/etc/letsencrypt/live/example.com/privkey.pem
+
+https://www.ecsoe.com/archives/38.html
+
+
+安装nginx
+yum -y install nginx
+systemctl enable nginx
+vi /etc/nginx/conf.d/v2ray.conf
+
+配置nginx
+server {
+    listen       443 ssl;
+    server_name  example.com;
+
+    ssl_certificate    /etc/letsencrypt/live/example.com/fullchain.pem;
+    ssl_certificate_key    /etc/letsencrypt/live/example.com/privkey.pem;
+    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:HIGH:!aNULL:!MD5:!RC4:!DHE;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    error_page 497  https://$host$request_uri;
+
+location /ray {
+    proxy_pass       http://127.0.0.1:10000;
+    proxy_redirect             off;
+    proxy_http_version         1.1;
+    proxy_set_header Upgrade   $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host      $http_host;
+    }
+}
+
+关闭SELinux
+vi /etc/selinux/config
+SELINUX=disabled
+setenforce 0
+
+
+systemctl start v2ray
+systemctl start nginx
+
+systemctl status v2ray
+systemctl status nginx
+
+
+v2ray+伪装流量 一键脚本
+https://github.com/wulabing/V2Ray_ws-tls_bash_onekey
+
+
+
+
+
+
+
+
